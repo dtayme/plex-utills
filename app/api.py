@@ -357,6 +357,7 @@ def help():
     import shutil 
     from pathlib import PureWindowsPath, PurePosixPath
     file_paths = './app/static/img/tmp/'
+    localexists = 'False'
     config = Plex.query.filter(Plex.id == '1')
     plexserver = PlexServer(config[0].plexurl, config[0].token)
     lib = config[0].filmslibrary.split(',')
@@ -406,8 +407,7 @@ def help():
                 newdir = re.sub(config[0].plexpath, '/films/', i.media[0].parts[0].file, 1)
         except:
             newdir = 'Can not be converted'
-        log.debug(newdir)
-        localexists = 'False'
+        log.debug(newdir)        
         if os.path.exists(newdir) == True:
             localexists = 'True'
             log.debug("PATH EXISTS")
