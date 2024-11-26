@@ -342,9 +342,9 @@ def scan_files(config, i, plex):
         logger.debug('path is: '+str(p1))
         file = PurePosixPath('/films', *p.parts[1:])
     elif config[0].manualplexpath == 1:
-        file = re.sub(config[0].manualplexpathfield, '/films', i.media[0].parts[0].file)
+        file = re.sub(config[0].manualplexpathfield, '/films/', i.media[0].parts[0].file,1)
     else:
-        file = re.sub(config[0].plexpath, '/films', i.media[0].parts[0].file)
+        file = re.sub(config[0].plexpath, '/films/', i.media[0].parts[0].file,1)
     logger.debug(file)
     try:
         m = MediaInfo.parse(file, output='JSON')
