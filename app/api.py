@@ -358,6 +358,12 @@ def help():
     from pathlib import PureWindowsPath, PurePosixPath
     file_paths = './app/static/img/tmp/'
     localexists = 'False'
+    plex_filepath = ''
+    filmtitle = ''
+    newdir = ''
+    backup_poster = ''
+    current_poster = ''
+    version = ''
     config = Plex.query.filter(Plex.id == '1')
     plexserver = PlexServer(config[0].plexurl, config[0].token)
     lib = config[0].filmslibrary.split(',')
