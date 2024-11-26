@@ -407,14 +407,14 @@ def help():
         except:
             newdir = 'Can not be converted'
         log.debug(newdir)
-        exists = 'False'
+        localexists = 'False'
         if os.path.exists(newdir) == True:
-            exists = 'True'
+            localexists = 'True'
             log.debug("PATH EXISTS")
         else:
-            exists = 'False'
+            localexists = 'False'
             log.debug("PATH DOES NOT EXIST")
-    return render_template('help.html', exists=exists, pagetitle='Help', plex=config, plex_filepath=plex_filepath, filmtitle=filmtitle, newdir=newdir, mpath=mpath, backup_poster=backup_poster, current_poster=current_poster, pageheadding='Help', version=version)
+    return render_template('help.html', exists=localexists, pagetitle='Help', plex=config, plex_filepath=plex_filepath, filmtitle=filmtitle, newdir=newdir, mpath=mpath, backup_poster=backup_poster, current_poster=current_poster, pageheadding='Help', version=version)
 
 
 @app.route('/webhook',methods=['POST'])
