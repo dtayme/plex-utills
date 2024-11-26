@@ -401,12 +401,13 @@ def help():
                 newdir = PurePosixPath('/films', *p.parts[1:])
                 log.debug(newdir)
             elif config[0].manualplexpath == 1:
-                newdir = re.sub(config[0].manualplexpathfield, '/films', i.media[0].parts[0].file)
+                newdir = re.sub(config[0].manualplexpathfield, '/films/', i.media[0].parts[0].file, 1)
             else:
-                newdir = re.sub(config[0].plexpath, '/films', i.media[0].parts[0].file)
+                newdir = re.sub(config[0].plexpath, '/films/', i.media[0].parts[0].file, 1)
         except:
             newdir = 'Can not be converted'
         log.debug(newdir)
+        exists = 'False'
         if os.path.exists(newdir) == True:
             exists = 'True'
             log.debug("PATH EXISTS")
