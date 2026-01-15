@@ -206,7 +206,9 @@ def posters4k(app, webhooktitle, poster_var):
                         else:
                             logger.debug(i.title+' Has 4k banner')                 
 
-                audio_hdr = database_decision(banners)
+                audio_hdr = database_decision(banners) or ("", "")
+                if len(audio_hdr) < 2:
+                    audio_hdr = (audio_hdr[0] if audio_hdr else "", "")
                 audio = audio_hdr[0]
                 hdr = audio_hdr[1]
                 logger.debug(audio+" "+hdr)
@@ -231,6 +233,9 @@ def posters4k(app, webhooktitle, poster_var):
                 ):
                     logger.debug(str(audio_hdr)+' - '+res)
                     r = film_table.query.filter(film_table.guid == guid).all()
+                    if not r:
+                        logger.debug(title+' not in database, skipping poster upload')
+                        return
                     #logger.warning('upload poster would happen now but is disabled')
                     poster_good = module.final_poster_compare(tmp_poster, plex_poster)
                     if poster_good == True:
@@ -311,16 +316,14 @@ def posters4k(app, webhooktitle, poster_var):
             module.clear_old_posters()      
             logger.info('4k Poster script has finished')
             
-        lib = config[0].filmslibrary.split(',')
+        lib = [l for l in config[0].filmslibrary.split(',') if l]
         logger.debug(lib)
-        n = len(lib)
-        if n <= 2:
+        for section_name in lib:
             try:
-                for l in range(n):
-                    films = plex.library.section(lib[l])
-                    run_script()
-            except IndexError:
-                pass
+                films = plex.library.section(section_name)
+                run_script()
+            except Exception as e:
+                logger.error("Error processing film library "+section_name+": "+repr(e))
 
 def guid_to_title(app, var):
     with app.app_context():
@@ -769,17 +772,14 @@ def restore_episodes_from_database(app, b_dir):
 
             logger.info('Finished restoring TV Posters')
             
-        lib = config[0].tvlibrary.split(',')
+        lib = [l for l in config[0].tvlibrary.split(',') if l]
         logger.debug(lib)
-        n = len(lib)
-        if n <= 2:
+        for section_name in lib:
             try:
-                ##while true:
-                    for l in range(10):
-                        films = plex.library.section(lib[l])
-                        run_script()
-            except IndexError:
-                pass            
+                films = plex.library.section(section_name)
+                run_script()
+            except Exception as e:
+                logger.error("Error processing TV library "+section_name+": "+repr(e))            
 
 def restore_episode_from_database(app, var):
     with app.app_context():    
@@ -1721,20 +1721,17 @@ def fill_database(app):
                                                 pass
                             audio = ""
                             try:
-                                while True:
-                                    for f in range(10):
-                                        if 'Audio' in x['media']['track'][f]['@type']:
-                                            if 'Format_Commercial_IfAny' in x['media']['track'][f]:
-                                                audio = x['media']['track'][f]['Format_Commercial_IfAny']
-                                                if 'XLL X' in x['media']['track'][f]["Format_AdditionalFeatures"]:
-                                                    audio = 'DTS:X'
-                                                break
-                                            elif 'Format' in x['media']['track'][f]:
-                                                audio = x['media']['track'][f]['Format']
-                                                break
-                                    if audio != "":
-                                        break
-                            except (IndexError, KeyError) as e:
+                                for track in x.get('media', {}).get('track', []):
+                                    if track.get('@type') == 'Audio':
+                                        if 'Format_Commercial_IfAny' in track:
+                                            audio = track['Format_Commercial_IfAny']
+                                            if track.get("Format_AdditionalFeatures") and 'XLL X' in track["Format_AdditionalFeatures"]:
+                                                audio = 'DTS:X'
+                                        elif 'Format' in track:
+                                            audio = track['Format']
+                                        if audio:
+                                            break
+                            except Exception as e:
                                 logger.debug(i.title+' '+repr(e))
                             return audio, hdr_version
                         except FileNotFoundError as e:
@@ -2015,6 +2012,8 @@ def add_labels(app):
             for i in films.search(sort='random'):
                 guid = str(i.guid)
                 r = film_table.query.filter(film_table.guid == guid)
+                if not r:
+                    continue
                 logger.debug(i.title+" "+r[0].audio+" "+r[0].hdr)
                 if 'Dolby Atmos' in r[0].audio:
                     i.addLabel('Dolby Atmos', locked=False)  
