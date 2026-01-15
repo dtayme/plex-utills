@@ -1,16 +1,14 @@
 FROM python:3.9.16-slim-bullseye
 
-LABEL maintainer="JKirkcaldy"
-LABEL support = "https://github.com/jkirkcaldy/plex-utills"
-LABEL discord = "https://discord.gg/z3FYhHwHMw"
+LABEL maintainer="JKirkcaldy" \
+      support="https://github.com/jkirkcaldy/plex-utills" \
+      discord="https://discord.gg/z3FYhHwHMw"
 
 
 COPY app/static/dockerfiles/default /etc/nginx/sites-enabled/default
-RUN apt update && apt upgrade -y && apt install -y wget git
-RUN wget https://mediaarea.net/repo/deb/repo-mediaarea_1.0-21_all.deb
-RUN dpkg -i repo-mediaarea_1.0-21_all.deb
-RUN apt install -y  mediainfo nginx ffmpeg libsm6 libxext6 nano \
-&& rm -rf /var/lib/apt/lists/*
+RUN apt update && apt upgrade -y && apt install -y wget git \
+    && apt install -y mediainfo nginx ffmpeg libsm6 libxext6 nano \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY ./start.sh .
