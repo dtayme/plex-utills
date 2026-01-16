@@ -1932,13 +1932,19 @@ def fill_database(app):
                                 #shutil.copyfileobj(img.raw, f)
                             return tmp_poster 
                         else:
-                            logger.info("4k Posters: "+films.title+ 'cannot find the poster for this film')
+                            logger.info("4k Posters: "+films.title+" cannot find the poster for "+i.title)
                     except OSError as e:
                         logger.error(e)
 
                 t = re.sub('plex://movie/', '', guid)
                 tmp_poster = re.sub(' ','_', '/tmp/'+t+'.png')
                 tmp_poster = get_poster()
+                if not tmp_poster:
+                    logger.warning('Poster download failed, attempting TMDB restore for '+i.title)
+                    tmp_poster = restore_tmdb()
+                    if not tmp_poster:
+                        logger.error('No poster available for '+i.title+', skipping')
+                        return
                 poster_size = (2000,3000)
                 banners = module.check_banners(tmp_poster, poster_size)
                 logger.debug(banners)
