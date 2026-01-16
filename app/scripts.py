@@ -1681,10 +1681,18 @@ def fill_database(app):
                         g = "".join(gv)
                         return g
                     g = get_tmdb_guid()
-                    tmdb_search = movie.details(movie_id=g)
+                    try:
+                        tmdb_search = movie.details(movie_id=g)
+                    except Exception as e:
+                        logger.warning('TMDB details fetch failed for '+i.title+': '+repr(e))
+                        return
                     logger.info(i.title)
                     def get_poster(poster):
-                        r = requests.get(poster_url_base+poster, stream=True)
+                        try:
+                            r = requests.get(poster_url_base+poster, stream=True, timeout=10)
+                        except requests.RequestException as e:
+                            logger.warning('TMDB poster download failed for '+i.title+': '+repr(e))
+                            return
                         if r.status_code == 200:
                             #r.raw.decode_content = True
                             with open('tmdb_poster_restore.png', 'wb') as f:
@@ -1695,6 +1703,9 @@ def fill_database(app):
                                 return tmdb_poster
                     try:
                         poster = tmdb_search.poster_path
+                        if not poster:
+                            logger.info("RESTORE: "+i.title+" has no TMDB poster path")
+                            return
                         tmdb_poster = get_poster(poster) 
                         return tmdb_poster
                     except TypeError:
@@ -1798,6 +1809,9 @@ def fill_database(app):
                     elif (True in banners and old_backup == False and config[0].tmdb_restore == 1):
                         b_file = b_dir+'films/'+t+'.png'
                         tmdb_poster = restore_tmdb()
+                        if not tmdb_poster:
+                            logger.warning('TMDB restore returned no poster for '+i.title)
+                            return b_file
                         shutil.copy(tmdb_poster, b_file)
                     return b_file
 
@@ -1921,7 +1935,11 @@ def fill_database(app):
                         width=2000,
                         imageFormat='png'
                     )
-                    img = requests.get(imgurl, stream=True)
+                    try:
+                        img = requests.get(imgurl, stream=True, timeout=10)
+                    except requests.RequestException as e:
+                        logger.warning('Plex poster download failed for '+i.title+': '+repr(e))
+                        return None
                     filename = tmp_poster
                     try:
                         if img.status_code == 200:
